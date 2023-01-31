@@ -1,0 +1,6 @@
+INFO: [VRFC 10-163] Analyzing VHDL file "C:/Users/vp96/OneDrive/Skrivbord/DVA452/Labb2/Step4/Step4.srcs/sources_1/new/Step4.vhd" into library xil_defaultlib
+INFO: [VRFC 10-3107] analyzing entity 'Mux8To1'
+INFO: [VRFC 10-3107] analyzing entity 'ArithLogic'
+INFO: [VRFC 10-3107] analyzing entity 'FI'
+INFO: [VRFC 10-3107] analyzing entity 'FaultyALU'
+INFO: [VRFC 10-3107] analyzing entity 'TB'

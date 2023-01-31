@@ -1,0 +1,246 @@
+--Mux4bit8To1--
+library ieee;
+use ieee.std_logic_1164.all;
+
+Entity Mux8To1 is
+  port(
+        i0, i1, i2, i3, i4, i5, i6, i7 : in std_logic_vector(3 downto 0);
+        sel : in std_logic_vector(2 downto 0);
+        o : out std_logic_vector(3 downto 0)
+        );
+end Mux8To1;
+
+architecture Mux8To1_F of Mux8to1 is
+begin
+process ( i0, i1, i2, i3, i4, i5, i6, i7, sel)
+begin
+    if sel = "000" then o <= i0;
+ 
+    elsif  sel = "001" then o <= i1;
+ 
+    elsif  sel = "010" then o <= i2;
+ 
+    elsif  sel = "011" then o <= i3;
+    
+    elsif  sel = "100" then o <= i4;
+ 
+    elsif  sel = "101" then o <= i5;
+ 
+    elsif  sel = "110" then o <= i6;
+    
+    elsif  sel = "111" then o <= i7;
+    
+    else o<= "XXXX";
+
+  end if;
+
+end process;
+end Mux8To1_F;
+
+library ieee;
+use ieee.std_logic_1164.all;
+use Ieee.NUMERIC_STD.ALL;
+
+entity ArithLogic is
+    port( 
+        A, B : in std_logic_vector (3 downto 0);
+        AplusB, AandB, AxorB, AnandB, APlusOne, Ao, Bo, AllZero : out std_logic_vector(3 downto 0)
+        
+        );
+end ArithLogic;
+
+architecture A_F of ArithLogic is
+begin
+    AplusB <= std_logic_vector( signed(A) + signed(B));
+    AandB <= A AND B;
+    AxorB <= A XOR B;
+    AnandB <= A NAND B;
+    APlusOne <= std_logic_vector( signed(A)+ "0001");
+    Ao <= A;
+    Bo <= B;
+    ALLZero <="0000";
+end A_F;
+
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+entity FI is
+    port (
+        A, B, FL           : in std_logic_vector(3 downto 0); 
+        OP                 : in std_logic_vector(2 downto 0); -- operation
+        FOP                : out std_logic_vector(2 downto 0);-- Fault operation
+        FA, FB             : out std_logic_vector(3 downto 0) -- Fault A, B
+                  
+        );
+end FI;
+
+
+
+architecture FI_F of FI is
+
+begin
+process(A, B, FL, OP)
+    begin
+      
+      
+        if (FL = "0000") then FA <= A; FA(0) <= not A(0);  FB <= B;  FOP <= OP;
+     elsif (FL = "0001") then FA <= A; FA(1) <= not A(1);  FB <= B;  FOP <= OP;
+     elsif (FL = "0010") then FA <= A; FA(2) <= not A(2);  FB <= B;  FOP <= OP;
+     elsif (FL = "0011") then FA <= A; FA(3) <= not A(3);  FB <= B;  FOP <= OP;
+    
+     elsif (FL = "0100") then FA <= A;  FB <= B ;FB(0) <= not B(0);  FOP <= OP;
+     elsif (FL = "0101") then FA <= A;  FB <= B; FB(1) <= not B(1);  FOP <= OP;
+     elsif (FL = "0110") then FA <= A;  FB <= B; FB(2) <= not B(2);  FOP <= OP;
+     elsif (FL = "0111") then FA <= A;  FB <= B; FB(3) <= not B(3);  FOP <= OP;
+      
+     elsif (FL = "1000") then FA <= A; FB <= B; FOP <= OP; FOP(0) <= not OP(0);
+     elsif (FL = "1001") then FA <= A; FB <= B; FOP <= OP; FOP(1) <= not OP(1);
+     elsif (FL = "1010") then FA <= A; FB <= B; FOP <= OP; FOP(2) <= not OP(2);
+      else FA <= a; FB <= b; FOP <= op; 
+        
+      end if;
+   end process;
+
+end  FI_F ;
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity FaultyALU is
+    port(
+        A, B, FaultyLocation : in std_logic_vector(3 downto 0);
+        Operation : in std_logic_vector(2 downto 0);
+        Result : out std_logic_vector(3 downto 0)
+    );
+end FaultyALU;
+
+architecture FaultyALU_Arch of FaultyALU is
+component FI is
+    port (
+        A : in std_logic_vector(3 downto 0);
+        B : in std_logic_vector(3 downto 0);
+        FL : in std_logic_vector(3 downto 0); 
+        OP : in std_logic_vector(2 downto 0); -- operation
+        FOP : out std_logic_vector(2 downto 0);-- Fault operation
+        FA : out std_logic_vector(3 downto 0); -- Fault A, B
+        FB : out std_logic_vector(3 downto 0)
+                  
+        );
+end component;
+
+component ArithLogic is
+    port( 
+        A, B : in std_logic_vector (3 downto 0);
+        AplusB, AandB, AxorB, AnandB, APlusOne, Ao, Bo, AllZero : out std_logic_vector(3 downto 0)
+        
+        );
+end component;
+
+component Mux8To1 is
+  port(
+        i0, i1, i2, i3, i4, i5, i6, i7 : in std_logic_vector(3 downto 0);
+        sel : in std_logic_vector(2 downto 0);
+        o : out std_logic_vector(3 downto 0)
+        );
+end component;
+
+    signal FA,FB,FL                           : std_logic_vector(3 downto 0);
+    signal FOP,OP                             : std_logic_vector(2 downto 0);    
+    signal  AplusB, AandB, AxorB, AnandB, APlusOne, Ao, Bo, AllZero,R  : std_logic_vector(3 downto 0);
+
+begin
+FI_1 : FI port map(A=>A,B=>B,FL=>FL,OP=>OP,FOP=>FOP,FA=>FA,FB=>FB);
+
+AL_1 : ArithLogic port map(FA,FB,AplusB,AandB,AxorB,AnandB,AplusOne,Ao,Bo,AllZero); 
+
+Mux8to1_1 : Mux8To1 port map(AplusB, AandB, AxorB, AnandB, APlusOne, Ao, Bo, AllZero, FOP, R);
+end FaultyALU_arch;
+
+--TB
+library IEEE;
+use IEEE.std_logic_1164.all;
+
+entity TB is end; 
+
+architecture F_ALU_TB of TB is
+    
+    component F_ALU is
+        port(
+          A,b                 : in  std_logic_vector(3 downto 0); -- input b and b and Fault location
+          OP                  : in  std_logic_vector(2 downto 0); -- operation
+          FL                : in  std_logic_vector(3 downto 0);
+          R              : out std_logic_vector(3 downto 0) -- Fault A and B
+        );
+    end component;
+    
+         signal A,B, R, FL          :  std_logic_vector(3 downto 0);
+         signal op                  :  std_logic_vector(2 downto 0);
+    
+ begin
+    ENTITY_INCTANCE : F_ALU
+    port map(A, B, OP, FL, R);
+        
+    process is
+    begin
+    --A
+    A <= "0000"; B <= "1010"; OP <= "101";
+    FL <= "0000";
+    wait for 10 ps;
+    
+    A <= "0000"; B <= "1010"; OP <= "101";
+    FL <= "0001";
+    wait for 10 ps;
+    
+    A <= "0000"; B <= "1010"; OP <= "101";
+    FL <= "0010";
+    wait for 10 ps;
+   
+    A <= "0000"; B <= "1010"; OP <= "101";
+    FL <= "0011";
+    wait for 10 ps;
+   
+    --B
+    A <= "1010"; B <= "0000"; OP <= "101"; 
+    FL <= "0100";
+    wait for 10 ps;
+    
+     A <= "1010"; B <= "0000"; OP <= "101"; 
+     FL <= "0101";
+    wait for 10 ps;
+    
+     A <= "1010"; B <= "0000"; OP <= "101"; 
+     FL <= "0110";
+    wait for 10 ps;
+    
+     A <= "1010"; B <= "0000"; OP <= "101"; 
+     FL <= "0111";
+    wait for 10 ps;
+    
+    --OP 
+    A <= "1010"; B <= "1010"; OP <= "000";
+    FL <= "1000";
+    wait for 10 ps;
+    
+    A <= "1010"; B <= "1010"; OP <= "000";
+    FL <= "1001";
+    wait for 10 ps;
+    
+    A <= "1010"; B <= "1010"; OP <= "000";
+    FL <= "1010";
+    wait for 10 ps;
+    
+    A <= "1010"; B <= "1010"; OP <= "111";
+    FL <= "1010";
+    wait for 10 ps;
+    
+    A <= "1001"; B <= "1010"; OP <= "111";
+    FL <= "1001";
+    wait for 10 ps;
+    
+    A <= "1000"; B <= "1010"; OP <= "111";
+    FL <= "1000";
+    wait for 10 ps;
+ 
+         wait;
+end process;  
+end F_ALU_TB;
